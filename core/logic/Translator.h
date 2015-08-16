@@ -39,6 +39,7 @@
 #include "sm_memtable.h"
 #include "ITextParsers.h"
 #include <ITranslator.h>
+#include "PhraseCollection.h"
 
 /* :TODO: write a templatized version of tries? */
 
@@ -126,7 +127,7 @@ public: //ITranslator
 	unsigned int GetClientLanguage(int client);
 	const char *GetInterfaceName();
 	unsigned int GetInterfaceVersion();
-	IPhraseCollection *CreatePhraseCollection();
+	CPhraseCollection *CreatePhraseCollection();
 	int SetGlobalTarget(int index);
 	int GetGlobalTarget() const;
 	size_t FormatString(
