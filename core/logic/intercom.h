@@ -351,6 +351,7 @@ struct sm_logic_t
 	void			(*DumpHandles)(void (*dumpfn)(const char *fmt, ...));
 	bool			(*DumpAdminCache)(const char *filename);
 	void            (*RegisterProfiler)(IProfilingTool *tool);
+	void            (*OnThink)(bool);
 	IScriptManager	*scripts;
 	IShareSys		*sharesys;
 	IExtensionSys	*extsys;

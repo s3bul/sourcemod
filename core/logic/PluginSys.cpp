@@ -43,6 +43,7 @@
 #include "common_logic.h"
 #include "Translator.h"
 #include "Logger.h"
+#include "frame_tasks.h"
 
 CPluginManager g_PluginSys;
 HandleType_t g_PluginType = 0;
@@ -51,6 +52,7 @@ IdentityType_t g_PluginIdent = 0;
 CPlugin::CPlugin(const char *file)
  : m_serial(0),
    m_status(Plugin_Uncompiled),
+   m_WaitingToUnload(false),
    m_SilentFailure(false),
    m_FakeNativesMissing(false),
    m_LibraryMissing(false),
@@ -1418,7 +1420,13 @@ void CPluginManager::TryRefreshDependencies(CPlugin *pPlugin)
 
 bool CPluginManager::UnloadPlugin(IPlugin *plugin)
 {
-	return ScheduleUnload((CPlugin *)plugin);
+	CPlugin *pPlugin = (CPlugin *)plugin;
+
+	// If we're already in the unload queue, just wait.
+	if (pPlugin->WaitingToUnload())
+		return false;
+
+	return ScheduleUnload(pPlugin);
 }
 
 bool CPluginManager::ScheduleUnload(CPlugin *pPlugin)
@@ -1427,11 +1435,12 @@ bool CPluginManager::ScheduleUnload(CPlugin *pPlugin)
 	assert(m_plugins.find(pPlugin) != m_plugins.end());
 
 	IPluginContext *pContext = pPlugin->GetBaseContext();
-	if (pContext && pContext->IsInExec())
-	{
-		char buffer[255];
-		smcore.Format(buffer, sizeof(buffer), "sm plugins unload %s\n", pPlugin->GetFilename());
-		engine->ServerCommand(buffer);
+	if (pContext && pContext->IsInExec()) {
+		ke::Lambda<void()> callback = [this, pPlugin]() {
+			this->ScheduleUnload(pPlugin);
+		};
+		pPlugin->SetWaitingToUnload();
+		ScheduleTaskForNextFrame(ke::Move(callback));
 		return false;
 	}
 

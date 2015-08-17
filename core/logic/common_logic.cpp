@@ -51,6 +51,7 @@
 #include "AdminCache.h"
 #include "ProfileTools.h"
 #include "Logger.h"
+#include "frame_tasks.h"
 
 sm_core_t smcore;
 IHandleSys *handlesys = &g_HandleSys;
@@ -137,6 +138,7 @@ static sm_logic_t logic =
 	DumpHandles,
 	DumpAdminCache,
 	RegisterProfiler,
+	RunScheduledFrameTasks,
 	&g_PluginSys,
 	&g_ShareSys,
 	&g_Extensions,
